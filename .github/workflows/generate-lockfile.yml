@@ -4,14 +4,13 @@ on:
   push:
     branches: [ main ]
   schedule:
-    - cron: '0 */6 * * *' # Restarts the job every 6 hours automatically
-  workflow_dispatch:      # Lets you start it manually
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
 
 jobs:
   run-bot:
     runs-on: ubuntu-latest
-    # This prevents the job from getting stuck if it hangs
-    timeout-minutes: 350 
+    timeout-minutes: 350
 
     steps:
       - name: Checkout Code
@@ -27,13 +26,12 @@ jobs:
 
       - name: Start Bot with Auto-Restart
         run: |
-          # This 'while' loop tells the computer: 
-          # "If the bot crashes, wait 5 seconds and start it again automatically"
+          # The "|| true" prevents GitHub from failing the whole job when the bot crashes
           while true; do
-            echo "Starting bot..."
-            npm start
-            echo "Bot crashed with exit code $?. Restarting in 5 seconds..."
-            sleep 5
+            echo "Starting bot with node index.js..."
+            node index.js || true
+            echo "Bot crashed or stopped. Restarting in 10 seconds..."
+            sleep 10
           done
         env:
           PREFIX: '.'
