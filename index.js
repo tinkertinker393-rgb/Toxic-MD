@@ -1,27 +1,24 @@
 /**
- * TOXIC-MD START SCRIPT
- * This file replaces the corrupted/obfuscated index.js 
- * to allow the bot to start on GitHub Actions.
+ * TOXIC-MD UNIVERSAL LOADER
+ * This file fixes the "Invalid Token" error and starts the real bot.
  */
 
 const { spawn } = require('child_process');
 const path = require('path');
 
 function start() {
-    console.log("Initializing Toxic-MD...");
+    console.log("Starting Toxic-MD from lib/toxic.js...");
     
-    // Most bots like this have the real code in the developer folder
-    let args = [path.join(__dirname, 'xh_clinton', 'index.js'), ...process.argv.slice(2)];
+    // We point directly to the file found in your 'lib' folder
+    const targetFile = path.join(__dirname, 'lib', 'toxic.js');
     
-    console.log(`Executing: node ${args[0]}`);
-    
-    let p = spawn(process.execPath, args, {
+    const p = spawn(process.execPath, [targetFile, ...process.argv.slice(2)], {
         stdio: ['inherit', 'inherit', 'inherit', 'ipc']
     });
 
     p.on('exit', (code) => {
-        console.error(`Bot process exited with code: ${code}`);
-        if (code === 0 || code === 1) start(); // Auto-restart on crash
+        console.error(`Bot process stopped (Code: ${code}). Restarting in 5 seconds...`);
+        setTimeout(start, 5000);
     });
 }
 
