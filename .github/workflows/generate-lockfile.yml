@@ -1,29 +1,43 @@
-name: Generate package-lock.json
+name: WhatsApp Bot Runner
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
+  schedule:
+    - cron: '0 */6 * * *' # Restarts the job every 6 hours automatically
+  workflow_dispatch:      # Lets you start it manually
 
 jobs:
-  generate-lockfile:
+  run-bot:
     runs-on: ubuntu-latest
+    # This prevents the job from getting stuck if it hangs
+    timeout-minutes: 350 
+
     steps:
-      - name: Checkout code
+      - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Set up Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '22'
+          node-version: '20'
 
-      - name: Install dependencies and generate package-lock.json
+      - name: Install Dependencies
         run: npm install
 
-      - name: Commit package-lock.json
+      - name: Start Bot with Auto-Restart
         run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add package-lock.json
-          git commit -m "Add package-lock.json" || echo "No changes to commit"
-          git push
+          # This 'while' loop tells the computer: 
+          # "If the bot crashes, wait 5 seconds and start it again automatically"
+          while true; do
+            echo "Starting bot..."
+            npm start
+            echo "Bot crashed with exit code $?. Restarting in 5 seconds..."
+            sleep 5
+          done
+        env:
+          PREFIX: '.'
+          PRESENCE: 'online'
+          OWNER_NUMBER: '254746404008'
+          SESSION: ${{ secrets.SESSION }}
+          AUTO_READ_STATUS: 'yes'
